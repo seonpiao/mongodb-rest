@@ -6,7 +6,7 @@
     Created by Tom de Grunt on 2010-10-03.
     Copyright (c) 2010 Tom de Grunt.
 		This file is part of mongodb-rest.
-*/ 
+*/
 
 var fs = require("fs");
 var path = require("path");
@@ -17,45 +17,44 @@ var extend = require("extend");
 // Default logger to use, if none is passed in.
 //
 var defaultLogger = {
-  verbose: function (msg) {
-//    console.log(msg);
+  verbose: function(msg) {
+    //    console.log(msg);
   },
 
-  info: function (msg) {
+  info: function(msg) {
     console.log(msg);
   },
 
-  warn: function (msg) {
+  warn: function(msg) {
     console.log(msg);
   },
 
-  error: function (msg) {
+  error: function(msg) {
     console.log(msg);
   },
 };
-		
-var defaultConfig = { 
-    db: 'mongodb://localhost:27017',
-    server: {
-        port: 3000,
-        address: "0.0.0.0"
-    },
-    accessControl: {
-        allowOrigin: "*",
-        allowMethods: "GET,POST,PUT,DELETE,HEAD,OPTIONS",
-        allowCredentials: false
-    },  
-    mongoOptions: {
-        serverOptions: {
-        },
-        dbOptions: {
-            w: 1
-        }
-    },
-    humanReadableOutput: true,
-    collectionOutputType: "json",
-    urlPrefix: "",
-    logger: defaultLogger,
+
+var defaultConfig = {
+  db: 'mongodb://localhost:27017',
+  server: {
+    port: 3000,
+    address: "0.0.0.0"
+  },
+  accessControl: {
+    allowOrigin: "*",
+    allowMethods: "GET,POST,PUT,DELETE,HEAD,OPTIONS",
+    allowCredentials: false
+  },
+  mongoOptions: {
+    serverOptions: {},
+    dbOptions: {
+      w: 1
+    }
+  },
+  humanReadableOutput: true,
+  collectionOutputType: "json",
+  urlPrefix: "",
+  logger: defaultLogger,
 };
 
 var server;
@@ -65,7 +64,7 @@ module.exports = {
   //
   // Start the REST API server.
   //
-  startServer: function (config, started) {
+  startServer: function(config, started) {
 
     var logger = (config && config.logger) || defaultLogger;
     var curDir = process.cwd();
@@ -76,16 +75,14 @@ module.exports = {
       var configFilePath = path.join(curDir, "config.json");
       if (fs.existsSync(configFilePath)) {
         logger.verbose("Loading configuration from: " + configFilePath);
-        config = JSON.parse(fs.readFileSync(configFilePath));        
+        config = JSON.parse(fs.readFileSync(configFilePath));
         config.logger = defaultLogger;
-      }
-      else {
+      } else {
         logger.verbose("Using default configuration.");
         logger.verbose("Please put config.json in current directory to customize configuration.");
         config = defaultConfig;
       }
-    }
-    else {
+    } else {
       if (!config.logger) {
         config.logger = defaultLogger;
       }
@@ -94,7 +91,7 @@ module.exports = {
     var app = express();
     require('express-csv');
 
-    app.use(require('body-parser')());
+    app.use(require('body-parser')(config.body));
 
     if (config.humanReadableOutput) {
       app.set('json spaces', 4);
@@ -103,9 +100,9 @@ module.exports = {
     if (config.accessControl) {
       var accesscontrol = require('./lib/accesscontrol')(config);
       app.use(accesscontrol.handle);
-    } 
+    }
 
-    app.get('/favicon.ico', function (req, res) {
+    app.get('/favicon.ico', function(req, res) {
       res.status(404);
     });
 
@@ -116,7 +113,7 @@ module.exports = {
     require('./lib/rest')(app, config);
 
     logger.verbose('Input Configuration:');
-    logger.verbose(config);  
+    logger.verbose(config);
 
     // Make a copy of the config so that defaults can be applied.
     config = extend(true, {}, config);
@@ -127,22 +124,22 @@ module.exports = {
     if (!config.server.address) {
       config.server.address = "0.0.0.0";
     }
-    
+
     if (!config.server.port) {
       config.server.port = 3000;
     }
 
     logger.verbose('Configuration with defaults applied:');
-    logger.verbose(config);  
+    logger.verbose(config);
 
     var host = config.server.address;
     var port = config.server.port;
 
-    logger.verbose('Starting mongodb-rest server: ' + host + ":" + port); 
+    logger.verbose('Starting mongodb-rest server: ' + host + ":" + port);
     logger.verbose('Connecting to db ' + JSON.stringify(config.db, null, 4));
 
-    server = app.listen(port, host, function () {
-      logger.verbose('Now listening on: ' + host + ":" + port); 
+    server = app.listen(port, host, function() {
+      logger.verbose('Now listening on: ' + host + ":" + port);
 
       if (started) {
         started();
@@ -153,7 +150,7 @@ module.exports = {
   //
   // Stop the REST API server.
   //
-  stopServer: function () {
+  stopServer: function() {
     if (server) {
       server.close();
       server = null;
@@ -162,7 +159,7 @@ module.exports = {
 
 };
 
-if (process.argv.length >= 2) { 
+if (process.argv.length >= 2) {
   if (process.argv[1].indexOf('server.js') != -1) {
 
     //
